@@ -27,6 +27,8 @@ int main(int argc, char **argv) {
 	int sc;
 	char *msg = "HELLO TLS CLIENT\n";
 
+	char *ciphers = "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384";
+
 	struct pollfd pfd[2];
 
 	if(tls_init() < 0) {
@@ -47,12 +49,17 @@ int main(int argc, char **argv) {
 	}
 
 
-	if(tls_config_parse_protocols(&protocols, "default") < 0) {
+	if(tls_config_parse_protocols(&protocols, "secure") < 0) {
 		printf("tls_config_parse_protocols error\n");
 		exit(1);
 	}
 
 	tls_config_set_protocols(config, protocols);
+
+	if(tls_config_set_ciphers(config, ciphers) < 0) {
+		printf("tls_config_set_ciphers error\n");
+		exit(1);
+	}
 
 	if(tls_config_set_key_file(config, "private.pem") < 0) {
 		printf("tls_config_set_key_file error\n");
