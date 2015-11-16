@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 	int opt = 1;
 	int b;
 	struct tls *tls2 = NULL;
-	size_t outlen = 0;
+	ssize_t outlen = 0;
 	char bufs[1000], bufc[1000];
 	int sc;
 	char *msg = "HELLO TLS CLIENT\n";
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 	}
 
 	if(tls_configure(tls, config) < 0) {
-		printf("tls_configure error\n");
+		printf("tls_configure error: %s\n", tls_error(tls));
 		exit(1);
 	}
 
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
-	tls_write(tls2, msg, strlen(msg), &outlen);
+	tls_write(tls2, msg, strlen(msg));
 
 	pfd[0].fd = 0;
 	pfd[0].events = POLLIN;
@@ -115,11 +115,11 @@ int main(int argc, char **argv) {
 
 		if(pfd[0].revents & POLLIN) {
 			int q = read(0, bufc, 1000);
-			tls_write(tls2, bufc, q, &outlen);
+			tls_write(tls2, bufc, q);
 		}
 
 		if(pfd[1].revents & POLLIN) {
-			if(tls_read(tls2, bufs, 1000, &outlen) < 0) break;
+			if((outlen = tls_read(tls2, bufs, 1000)) <= 0) break;
 			printf("Mensagem (%lu): %s\n", outlen, bufs);
 		}
 

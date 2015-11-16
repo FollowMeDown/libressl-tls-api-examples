@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 	struct tls *tls = NULL;
 	struct tls_config *config = NULL;
 	char *msg = "HELLO TLS SERVER!\n";
-	size_t outlen = 0;
+	ssize_t outlen = 0;
 	char bufs[1000], bufc[1000];
 	struct sockaddr_in server;
 	struct pollfd pfd[2];
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 	}
 
 
-	tls_write(tls, msg, strlen(msg), &outlen);
+	tls_write(tls, msg, strlen(msg));
 
 	pfd[0].fd = 0;
 	pfd[0].events = POLLIN;
@@ -67,11 +67,11 @@ int main(int argc, char **argv) {
 
 		if(pfd[0].revents & POLLIN) {
 			int q = read(0, bufc, 1000);
-			tls_write(tls, bufc, q, &outlen);
+			tls_write(tls, bufc, q);
 		}
 
 		if(pfd[1].revents & POLLIN) {
-			if(tls_read(tls, bufs, 1000, &outlen) < 0) break;
+			if((outlen = tls_read(tls, bufs, 1000)) <= 0) break;
 			printf("Mensagem (%lu): %s\n", outlen, bufs);
 		}
 
